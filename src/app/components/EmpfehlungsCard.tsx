@@ -18,7 +18,7 @@ const EmpfehlungsCard = ({
   mode: Abrechnungszeitraum;
 }) => {
   return (
-    <Card className={"flex-1 backdrop-blur-2xl drop-shadow-sm min-w-64"}>
+    <Card className={"flex-1 backdrop-blur-2xl drop-shadow-xs min-w-64"}>
       <Flex
         gap={"2"}
         direction="column"

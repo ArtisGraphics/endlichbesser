@@ -25,6 +25,8 @@ interface SalaryContextProps {
   setInDerKirche: (value: string) => void;
   bundesland: Bundesland;
   setBundesland: (value: Bundesland) => void;
+  bundeslandWasManuallySet: boolean;
+  setBundeslandWasManuallySet: (value: boolean) => void;
   alter: number;
   setAlter: (value: number) => void;
   kinder: number;
@@ -165,6 +167,8 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
   const [bundesland, setBundesland] = useState<Bundesland>(
     getLocalStorage("bundesland", "Baden-Württemberg"),
   );
+  const [bundeslandWasManuallySet, setBundeslandWasManuallySet] =
+    useState<boolean>(getLocalStorage("bundeslandWasManuallySet", false));
   const [alter, setAlter] = useState<number>(getLocalStorage("alter", 25));
   const [kinder, setKinder] = useState<number>(getLocalStorage("kinder", 0));
   const [gehaelter, setGehaelter] = useState<number>(
@@ -345,6 +349,7 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
       abrechnungszeitraum,
       inDerKirche,
       bundesland,
+      bundeslandWasManuallySet,
       alter,
       kinder,
       gehaelter,
@@ -402,6 +407,7 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
     abrechnungszeitraum,
     inDerKirche,
     bundesland,
+    bundeslandWasManuallySet,
     alter,
     kinder,
     gehaelter,
@@ -471,6 +477,8 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
         setInDerKirche,
         bundesland,
         setBundesland,
+        bundeslandWasManuallySet,
+        setBundeslandWasManuallySet,
         alter,
         setAlter,
         kinder,

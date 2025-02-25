@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Flex, Heading, Table, Tabs, Text } from "@radix-ui/themes";
+import { Card, Flex, Grid, Heading, Table, Tabs, Text } from "@radix-ui/themes";
 import { ResponsivePie } from "@nivo/pie";
 import { Datum, ResponsiveWaffle } from "@nivo/waffle";
 import { useSalary } from "@/contexts/GehaltProvider";
@@ -376,19 +376,34 @@ export const GehaltAnalyse = () => {
             <Heading size={"4"}>Stundenlohn</Heading>
             Du arbeitest derzeit {wochenstunden} Stunden pro Woche bzw.{" "}
             <b>{wochenstunden * 4} Stunden</b> pro Monat.
+            <Grid columns={"2"} rows={"4"}>
+              <Flex className={""}>
+                <Text>Brutto pro Stunde</Text>
+                <Text color={"green"}>
+                  {berechneStundenlohn(
+                    wochenstunden * 4,
+                    bruttoImJahr / gehaelter,
+                  ).toLocaleString("de-DE", {
+                    style: "currency",
+                    currency: "EUR",
+                  })}
+                </Text>
+              </Flex>
+            </Grid>
             <br />
-            Du erwirtschaftest also{" "}
-            <Text color={"green"}>
-              {berechneStundenlohn(
-                wochenstunden * 4,
-                bruttoImJahr / gehaelter,
-              ).toLocaleString("de-DE", {
-                style: "currency",
-                currency: "EUR",
-              })}
-              {"  "}
+            <br />
+            davon Sozialabgaben:{" "}
+            <Text color={"red"}>
+              {Math.round(
+                (gesamtKostenSozialversicherung / bruttoImJahr) * 10000,
+              ) / 100}
+              %
             </Text>
-            (Brutto) pro Stunde.
+            <br />
+            davon Steuern:{" "}
+            <Text color={"red"}>
+              {Math.round((gesamtKostenSteuern / bruttoImJahr) * 10000) / 100}%
+            </Text>
             <br />
             Nach allen Abgaben kommen effektiv bei dir{" "}
             <Text color={"green"}>
@@ -402,21 +417,6 @@ export const GehaltAnalyse = () => {
               {"  "}
             </Text>
             (Netto) pro Stunde an.
-            <br />
-            Deine Steuern fressen{" "}
-            <Text color={"red"}>
-              {Math.round((gesamtKostenSteuern / bruttoImJahr) * 10000) / 100}%
-            </Text>{" "}
-            deines Bruttos auf.
-            <br />
-            Die Sozialabgaben fressen{" "}
-            <Text color={"red"}>
-              {Math.round(
-                (gesamtKostenSozialversicherung / bruttoImJahr) * 10000,
-              ) / 100}
-              %
-            </Text>{" "}
-            deines Bruttos auf.
             <br />
             Damit liegt deine Abgabenlast insgesamt bei{" "}
             <Text color={"red"} weight={"bold"}>

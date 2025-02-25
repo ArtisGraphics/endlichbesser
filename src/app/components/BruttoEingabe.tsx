@@ -58,6 +58,8 @@ export const BruttoEingabe = () => {
     setInDerKirche,
     bundesland,
     setBundesland,
+    bundeslandWasManuallySet,
+    setBundeslandWasManuallySet,
     alter,
     setAlter,
     kinder,
@@ -132,9 +134,12 @@ export const BruttoEingabe = () => {
     if (steuerklasse === "Klasse 2" && kinder === 0) {
       setKinder(1);
     }
-  }, [kinder, setKinder, steuerklasse]);
+  }, [setKinder, steuerklasse]);
 
   useEffect(() => {
+    if (bundeslandWasManuallySet) {
+      return;
+    }
     setFetchingBundesland(true);
     // Fetch the user's IP address
     fetch("https://api.ipify.org?format=json")
@@ -179,7 +184,7 @@ export const BruttoEingabe = () => {
         console.error("Error fetching IP address:", error);
         setFetchingBundesland(false);
       });
-  }, [setBundesland]);
+  }, [bundeslandWasManuallySet, setBundesland]);
 
   //Brutto
   useEffect(() => {
@@ -458,6 +463,8 @@ export const BruttoEingabe = () => {
             id="brutto"
             name="brutto"
             placeholder="Bruttogehalt eingeben"
+            min={0}
+            max={99999999}
             value={brutto ? brutto : ""}
             color={brutto ? "green" : "red"}
             variant={brutto ? "surface" : "soft"}
@@ -607,7 +614,13 @@ export const BruttoEingabe = () => {
         <Label htmlFor="bundesland">Bundesland</Label>
         <Flex gap={"2"} align={"center"}>
           {fetchingBundesland && <Spinner />}
-          <Select.Root value={bundesland} onValueChange={setBundesland}>
+          <Select.Root
+            value={bundesland}
+            onValueChange={(value: Bundesland) => {
+              setBundeslandWasManuallySet(true);
+              setBundesland(value);
+            }}
+          >
             <Select.Trigger />
             <Select.Content>
               <Select.Item value="Baden-Württemberg">
@@ -830,14 +843,20 @@ export const BruttoEingabe = () => {
         width={"100%"}
       >
         <Flex gap="2" align="center">
-          {!alter && (
-            <Label className={"text-xs text-red-400"}>
-              <Tooltip content={"Die Anzahl deiner Kinder fehlt"}>
-                <ExclamationTriangleIcon />
-              </Tooltip>
-            </Label>
-          )}
-          <Label htmlFor="kinder">Wie viele Kinder hast du?</Label>
+          <Flex gap={"2"} align={"center"} direction={"row"} justify={"center"}>
+            {steuerklasse === "Klasse 2" && kinder === 0 && (
+              <Label className={"text-xs text-red-400"}>
+                <Tooltip
+                  content={
+                    "Du musst mindestens ein Kind haben, um in Steuerklasse 2 zu sein. Wechsle deine Steuerklasse oder gib die Anzahl deiner Kinder an."
+                  }
+                >
+                  <ExclamationTriangleIcon />
+                </Tooltip>
+              </Label>
+            )}
+            <Label htmlFor="kinder">Wie viele Kinder hast du?</Label>
+          </Flex>
           <Popover.Root>
             <Popover.Trigger>
               <Button variant="surface">?</Button>
@@ -855,9 +874,11 @@ export const BruttoEingabe = () => {
           name="kinder"
           max={69}
           min={0}
+          color={steuerklasse === "Klasse 2" && kinder === 0 ? "red" : "green"}
+          variant={
+            steuerklasse === "Klasse 2" && kinder === 0 ? "soft" : "surface"
+          }
           value={kinder ? kinder : ""}
-          color={kinder ? "green" : "red"}
-          variant={kinder ? "surface" : "soft"}
           onChange={(e) => setKinder(Number(e.target.value))}
         >
           <TextField.Slot side={"right"}>Kinder</TextField.Slot>
@@ -985,7 +1006,8 @@ export const BruttoEingabe = () => {
             name="kvZusatzbeitrag"
             placeholder="dein Zusatzbeitrag"
             step={0.01}
-            min={1.84}
+            min={0}
+            max={4.4}
             value={kvZusatzbeitrag ? kvZusatzbeitrag : ""}
             color={kvZusatzbeitrag ? "green" : "red"}
             variant={kvZusatzbeitrag ? "surface" : "soft"}
