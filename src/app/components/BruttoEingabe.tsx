@@ -147,7 +147,7 @@ export const BruttoEingabe = () => {
       .then((data) => {
         const ipAddress = data.ip;
         // Use the IP address to fetch the user's location
-        fetch(`http://ip-api.com/json/${ipAddress}?fields=regionName&lang=de`)
+        fetch(`https://ip-api.com/json/${ipAddress}?fields=regionName&lang=de`)
           .then((response) => response.json())
           .then((location) => {
             if (location.regionName) {
