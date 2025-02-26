@@ -1,4 +1,4 @@
-import { Card, Flex } from "@radix-ui/themes";
+import { Flex } from "@radix-ui/themes";
 
 export const Ads = () => {
   return (

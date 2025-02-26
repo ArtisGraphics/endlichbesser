@@ -1,4 +1,4 @@
-import { Card, Flex, Link } from "@radix-ui/themes";
+import { Flex } from "@radix-ui/themes";
 
 export const Navbar = () => {
   return (
