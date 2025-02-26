@@ -20,11 +20,13 @@ export const Header = () => {
             </Text>
           </Flex>
         </Link>
-        <Flex align={"center"} className={"hidden! md:flex"} gap={"8"}>
+        <Flex align={"center"} className={"hidden! md:flex!"} gap={"8"}>
           <Link className={"text-white!"} href={"/"}>
             Start
           </Link>
-          <Button>Netto optimieren</Button>
+          <Link href={"/mehr-netto-vom-brutto"}>
+            <Button>Netto optimieren</Button>
+          </Link>
         </Flex>
       </Flex>
     </Flex>

@@ -483,11 +483,7 @@ export const BruttoEingabe = () => {
             </Select.Content>
           </Select.Root>
         </Flex>
-        <Text
-          className={"absolute left-full translate-x-6"}
-          weight={"bold"}
-          color={"green"}
-        >
+        <Text className={"absolute left-full translate-x-6"} color={"green"}>
           {bruttoImJahr.toLocaleString("de-DE", {
             style: "currency",
             currency: "EUR",
@@ -525,6 +521,17 @@ export const BruttoEingabe = () => {
           {!wochenstunden && (
             <Label className={"text-xs text-red-400"}>
               <Tooltip content={"Wochenstunden fehlen"}>
+                <ExclamationTriangleIcon />
+              </Tooltip>
+            </Label>
+          )}
+          {wochenstunden > 48 && (
+            <Label className={"text-xs text-yellow-400"}>
+              <Tooltip
+                content={
+                  "Die gesetzliche Höchstgrenze liegt bei durchschnittlich 48 Wochenstunden. (Arbeitszeitgesetz §7 Artikel 8)."
+                }
+              >
                 <ExclamationTriangleIcon />
               </Tooltip>
             </Label>
@@ -584,6 +591,17 @@ export const BruttoEingabe = () => {
               </Tooltip>
             </Label>
           )}
+          {urlaubstage < 20 && (
+            <Label className={"text-xs text-yellow-400"}>
+              <Tooltip
+                content={
+                  "Die gesetzliche Mindestgrenze liegt bei einer 5-Tage-Woche bei 20 Urlaubstagen. (Bundesurlaubsgesetz §3, Artikel 1)"
+                }
+              >
+                <ExclamationTriangleIcon />
+              </Tooltip>
+            </Label>
+          )}
           <Label htmlFor="urlaubstage">Urlaubstage</Label>
         </Flex>
         <Flex gap={"2"} align={"center"}>
@@ -591,7 +609,7 @@ export const BruttoEingabe = () => {
             type="number"
             id="urlaubstage"
             name="urlaubstage"
-            max={300}
+            max={365}
             min={0}
             value={urlaubstage ? urlaubstage : ""}
             color={urlaubstage ? "green" : "red"}
@@ -874,6 +892,7 @@ export const BruttoEingabe = () => {
           name="kinder"
           max={69}
           min={0}
+          placeholder={"-"}
           color={steuerklasse === "Klasse 2" && kinder === 0 ? "red" : "green"}
           variant={
             steuerklasse === "Klasse 2" && kinder === 0 ? "soft" : "surface"
@@ -1492,7 +1511,7 @@ export const BruttoEingabe = () => {
         width={"100%"}
       >
         <Text>Dein Nettoeinkommen</Text>
-        <Text>
+        <Text weight={"bold"}>
           <Text color={netto < 0 ? "red" : "green"}>
             {netto.toLocaleString("de-DE", {
               style: "currency",
@@ -1502,6 +1521,7 @@ export const BruttoEingabe = () => {
           {" pro "} {getZahlungsintervall(abrechnungszeitraum, gehaelter)}
         </Text>
         <Text
+          weight={"bold"}
           className={"absolute left-full translate-x-6"}
           color={netto < 0 ? "red" : "green"}
         >

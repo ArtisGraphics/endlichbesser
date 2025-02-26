@@ -1,11 +1,12 @@
 "use client";
 
-import { Card, Flex, Grid, Heading, Table, Tabs, Text } from "@radix-ui/themes";
+import { Card, Flex, Heading, Table, Tabs, Text } from "@radix-ui/themes";
 import { ResponsivePie } from "@nivo/pie";
 import { Datum, ResponsiveWaffle } from "@nivo/waffle";
 import { useSalary } from "@/contexts/GehaltProvider";
 import { LegendProps } from "@nivo/legends";
 import { berechneStundenlohn } from "@/utils/stundenlohn";
+import { getArbeitstageImJahr } from "@/utils/arbeitstageImJahr";
 import { berechneUrlaubsstunden } from "@/utils/urlaub";
 
 const MyTheme = {
@@ -126,6 +127,7 @@ export const GehaltAnalyse = () => {
     urlaubstage,
     gesamtKostenSteuern,
     gesamtKostenSozialversicherung,
+    bundesland,
   } = useSalary();
 
   const pieData = [
@@ -168,6 +170,18 @@ export const GehaltAnalyse = () => {
     label: item.label,
     value: (item.value / bruttoImJahr) * 100,
   }));
+
+  const bruttoStundenlohn = berechneStundenlohn(
+    wochenstunden * 4,
+    bruttoImJahr / gehaelter,
+  );
+  const nettoStundenlohn = berechneStundenlohn(
+    wochenstunden * 4,
+    nettoEinkommen / gehaelter,
+  );
+  const arbeistageImJahr = getArbeitstageImJahr(bundesland, 2025) - urlaubstage;
+  const arbeitszeitImJahr = (arbeistageImJahr * wochenstunden) / 5;
+  const urlaubsstunden = berechneUrlaubsstunden(urlaubstage, wochenstunden);
 
   return (
     <Tabs.Root defaultValue="pie">
@@ -371,88 +385,171 @@ export const GehaltAnalyse = () => {
           </Table.Body>
         </Table.Root>
 
-        <Flex width={"100%"} gap={"4"}>
-          <Card className={"w-full"}>
+        <div className={"flex flex-col lg:grid lg:grid-cols-3 w-full gap-4"}>
+          <Card className={"col-span-1 flex! flex-col! gap-2! text-pretty"}>
             <Heading size={"4"}>Stundenlohn</Heading>
-            Du arbeitest derzeit {wochenstunden} Stunden pro Woche bzw.{" "}
-            <b>{wochenstunden * 4} Stunden</b> pro Monat.
-            <Grid columns={"2"} rows={"4"}>
-              <Flex className={""}>
-                <Text>Brutto pro Stunde</Text>
-                <Text color={"green"}>
-                  {berechneStundenlohn(
-                    wochenstunden * 4,
-                    bruttoImJahr / gehaelter,
+            <Text>
+              Du arbeitest derzeit {wochenstunden} Stunden pro Woche bzw.{" "}
+              <b>{wochenstunden * 4} Stunden</b> pro Monat.
+            </Text>
+            <Table.Root variant={"surface"}>
+              <Table.Body>
+                <Table.Row>
+                  <Table.RowHeaderCell>
+                    <Text>Brutto pro Stunde</Text>
+                  </Table.RowHeaderCell>
+                  <Table.Cell>
+                    <Text color={"green"}>
+                      {berechneStundenlohn(
+                        wochenstunden * 4,
+                        bruttoImJahr / gehaelter,
+                      ).toLocaleString("de-DE", {
+                        style: "currency",
+                        currency: "EUR",
+                      })}
+                    </Text>
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.RowHeaderCell>
+                    <Text>Sozialabgaben</Text>
+                  </Table.RowHeaderCell>
+                  <Table.Cell>
+                    <Text color={"red"}>
+                      {Math.round(
+                        (gesamtKostenSozialversicherung / bruttoImJahr) * 10000,
+                      ) / 100}
+                      %
+                    </Text>
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.RowHeaderCell>
+                    <Text>Steuern</Text>
+                  </Table.RowHeaderCell>
+                  <Table.Cell>
+                    <Text color={"red"}>
+                      {Math.round(
+                        (gesamtKostenSteuern / bruttoImJahr) * 10000,
+                      ) / 100}
+                      %
+                    </Text>
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.RowHeaderCell>
+                    <Text>Abgabenlast</Text>
+                  </Table.RowHeaderCell>
+                  <Table.Cell>
+                    <Text color={"red"} weight={"bold"}>
+                      {Math.round((1 - nettoEinkommen / bruttoImJahr) * 10000) /
+                        100}
+                      %
+                    </Text>
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.RowHeaderCell>
+                    <Text>Netto pro Stunde</Text>
+                  </Table.RowHeaderCell>
+                  <Table.Cell>
+                    <Text color={"green"}>
+                      {nettoStundenlohn.toLocaleString("de-DE", {
+                        style: "currency",
+                        currency: "EUR",
+                      })}
+                      {"  "}
+                    </Text>
+                  </Table.Cell>
+                </Table.Row>
+              </Table.Body>
+            </Table.Root>
+          </Card>
+          <Card className={"col-span-2 flex! flex-col! gap-2! text-pretty"}>
+            <Heading size={"4"}>Arbeitszeit</Heading>
+            <Text>
+              Für das Bundesland <b>{bundesland}</b> im Jahr 2025 existieren
+              genau <b>{getArbeitstageImJahr(bundesland, 2025)} Arbeistage</b>{" "}
+              und dir stehen <b>{urlaubstage} Urlaubstage</b> zur Verfügung, das
+              entspricht{" "}
+              <Text color={"green"} weight={"bold"}>
+                {arbeistageImJahr} Tage
+              </Text>{" "}
+              bzw.{" "}
+              <Text color={"green"} weight={"bold"}>
+                {arbeitszeitImJahr} Stunden
+              </Text>{" "}
+              an denen du arbeiten musst.
+            </Text>
+            <Text>
+              Dein effektiver Stundenlohn (Netto im Jahr / geleistete Stunden)
+              beträgt:{" "}
+              <Text color={"green"} weight={"bold"}>
+                <u>
+                  {(
+                    Math.round((nettoEinkommen / arbeitszeitImJahr) * 100) / 100
                   ).toLocaleString("de-DE", {
                     style: "currency",
                     currency: "EUR",
-                  })}
-                </Text>
-              </Flex>
-            </Grid>
-            <br />
-            <br />
-            davon Sozialabgaben:{" "}
-            <Text color={"red"}>
-              {Math.round(
-                (gesamtKostenSozialversicherung / bruttoImJahr) * 10000,
-              ) / 100}
-              %
+                  })}{" "}
+                  pro Stunde
+                </u>
+              </Text>
             </Text>
-            <br />
-            davon Steuern:{" "}
-            <Text color={"red"}>
-              {Math.round((gesamtKostenSteuern / bruttoImJahr) * 10000) / 100}%
-            </Text>
-            <br />
-            Nach allen Abgaben kommen effektiv bei dir{" "}
-            <Text color={"green"}>
-              {berechneStundenlohn(
-                wochenstunden * 4,
-                nettoEinkommen / gehaelter,
-              ).toLocaleString("de-DE", {
-                style: "currency",
-                currency: "EUR",
-              })}
-              {"  "}
-            </Text>
-            (Netto) pro Stunde an.
-            <br />
-            Damit liegt deine Abgabenlast insgesamt bei{" "}
-            <Text color={"red"} weight={"bold"}>
-              {Math.round((1 - nettoEinkommen / bruttoImJahr) * 10000) / 100}%
-            </Text>
-            .
+            <Table.Root variant={"surface"}>
+              <Table.Body>
+                <Table.Row>
+                  <Table.RowHeaderCell>
+                    <Text>1 Urlaubstag</Text>
+                  </Table.RowHeaderCell>
+                  <Table.Cell>
+                    <Text color={"green"}>{wochenstunden / 5}h</Text>
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.RowHeaderCell>
+                    <Text>Alle Urlaubstage</Text>
+                  </Table.RowHeaderCell>
+                  <Table.Cell>
+                    <Text color={"green"}>{urlaubsstunden}h</Text>
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.RowHeaderCell>
+                    <Text>Urlaubswert (Brutto)</Text>
+                  </Table.RowHeaderCell>
+                  <Table.Cell>
+                    <Text color={"green"}>
+                      {(bruttoStundenlohn * urlaubsstunden).toLocaleString(
+                        "de-DE",
+                        {
+                          style: "currency",
+                          currency: "EUR",
+                        },
+                      )}
+                    </Text>
+                  </Table.Cell>
+                </Table.Row>
+                <Table.Row>
+                  <Table.RowHeaderCell>
+                    <Text>Urlaubswert (Netto)</Text>
+                  </Table.RowHeaderCell>
+                  <Table.Cell>
+                    <Text color={"green"}>
+                      {(nettoStundenlohn * urlaubsstunden).toLocaleString(
+                        "de-DE",
+                        {
+                          style: "currency",
+                          currency: "EUR",
+                        },
+                      )}
+                    </Text>
+                  </Table.Cell>
+                </Table.Row>
+              </Table.Body>
+            </Table.Root>
           </Card>
-          <Card className={"w-full"}>
-            <Heading size={"4"}>Urlaubszeit</Heading>
-            Im Jahr stehen dir <b>{urlaubstage} Urlaubstage</b> zur Verfügung.
-            <br />
-            Ein Urlaubstag entspricht bei deiner Arbeitszeit{" "}
-            <Text color={"green"}>{wochenstunden / 5} Stunden</Text>.
-            <br />
-            All deine Urlaubstage entsprechen{" "}
-            <Text color={"green"}>
-              {berechneUrlaubsstunden(urlaubstage, wochenstunden)}{" "}
-              Urlaubsstunden
-            </Text>
-            .<br />
-            Dein gesamter Urlaub entspräche also einem Bruttoverdienst von
-            umgerechnet{" "}
-            <Text color={"green"}>
-              {(
-                berechneStundenlohn(
-                  wochenstunden * 4,
-                  bruttoImJahr / gehaelter,
-                ) * berechneUrlaubsstunden(urlaubstage, wochenstunden)
-              ).toLocaleString("de-DE", {
-                style: "currency",
-                currency: "EUR",
-              })}
-            </Text>
-            .
-          </Card>
-        </Flex>
+        </div>
       </Flex>
       <Tabs.List>
         <Tabs.Trigger value="pie">Kreisdiagramm</Tabs.Trigger>

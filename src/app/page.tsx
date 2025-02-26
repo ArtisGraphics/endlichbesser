@@ -1,76 +1,76 @@
-import { Callout, Flex, Heading, Tabs } from "@radix-ui/themes";
-import { BruttoEingabe } from "@/app/components/BruttoEingabe";
-import { GehaltAnalyse } from "@/app/components/GehaltAnalyse";
-import { Empfehlungen } from "@/app/components/Empfehlungen";
-import { InfoCircledIcon, LockClosedIcon } from "@radix-ui/react-icons";
-import { WeitereEinkommen } from "@/app/components/WeitereEinkommen";
-import { ProfileSwitch } from "@/app/components/ProfileSwitch";
+import { Button, Card, Flex, Heading, Link, Text } from "@radix-ui/themes";
+import { ArrowRightIcon } from "@radix-ui/react-icons";
+import Image from "next/image";
 
 export default function Home() {
   return (
     <Flex
       direction={"column"}
       align={"center"}
-      className={"p-4 text-center"}
-      gap={"4"}
+      justify={"center"}
+      className={"p-4 h-full text-center"}
+      gap={"8"}
     >
-      <Heading size={"9"}>Mehr Netto vom Brutto</Heading>
+      <Heading as={"h1"} className={"text-6xl!"}>
+        Eine Webseite, die dir hilft
+        <br /> dein Leben zu meistern.
+      </Heading>
       <Flex wrap={"wrap"} align={"center"} justify={"center"} gap={"2"}>
-        <Callout.Root className={"self-center"}>
-          <Callout.Icon>
-            <LockClosedIcon />
-          </Callout.Icon>
-          <Callout.Text>
-            Alle Angaben bleiben nur auf deinem Gerät gespeichert.
-          </Callout.Text>
-        </Callout.Root>
-        <Callout.Root color={"orange"} className={"self-center"}>
-          <Callout.Icon>
-            <InfoCircledIcon />
-          </Callout.Icon>
-          <Callout.Text>
-            Die Webseite ist seit dem 22.02.2025 in Entwicklung.
-          </Callout.Text>
-        </Callout.Root>
+        <Link href={"/mehr-netto-vom-brutto"}>
+          <Button size={"4"} variant={"solid"}>
+            Netto optimieren
+          </Button>
+        </Link>
       </Flex>
+      <Flex align={"center"} gap={"4"} width={"100%"} maxWidth={"1200px"}>
+        <Card className={"flex! p-6! flex-col w-full gap-4"}>
+          <Heading as={"h2"} size={"6"}>
+            Netto berechnen
+          </Heading>
+          <Image
+            src={"/nettolohn_berechnen.png"}
+            width={400}
+            height={400}
+            alt={""}
+          />
 
-      <Flex direction={"column"} width={"100%"} gap={"8"} maxWidth={"1200px"}>
-        <Tabs.Root defaultValue="1">
-          <Tabs.List>
-            <Tabs.Trigger value="1">1. Deine Angaben</Tabs.Trigger>
-            <Tabs.Trigger value="2">2. Analyse</Tabs.Trigger>
-            <Tabs.Trigger value="3">3. Empfehlungen</Tabs.Trigger>
-          </Tabs.List>
-
-          <Flex width={"100%"} pt="3">
-            <Tabs.Content className={"w-full"} value="1">
-              <Flex
-                gap={"4"}
-                wrap={"wrap"}
-                className={"w-full"}
-                justify={"between"}
-              >
-                <Flex
-                  className={"w-full lg:w-1/2"}
-                  direction={"column"}
-                  gap={"8"}
-                >
-                  <BruttoEingabe />
-                  <WeitereEinkommen />
-                </Flex>
-                <ProfileSwitch />
-              </Flex>
-            </Tabs.Content>
-
-            <Tabs.Content className={"w-full"} value="2">
-              <GehaltAnalyse />
-            </Tabs.Content>
-
-            <Tabs.Content className={"w-full"} value="3">
-              <Empfehlungen />
-            </Tabs.Content>
-          </Flex>
-        </Tabs.Root>
+          <Text>
+            Es war noch nie einfacher sein Nettolohn zu berechnen. Der modernste
+            Brutto-Netto-Rechner ist super leicht zu bedienen.
+          </Text>
+        </Card>
+        <ArrowRightIcon className={"w-[60px]"} />
+        <Card className={"flex! p-6! flex-col w-full h-full gap-4"}>
+          <Heading as={"h2"} size={"6"}>
+            Netto analysieren
+          </Heading>
+          <Image
+            src={"/nettolohn_analysieren.png"}
+            width={400}
+            height={400}
+            alt={""}
+          />
+          <Text>
+            Nach der Berechnung kannst du dir anschauen wie hoch dein effektiver
+            Stundenlohn ist oder wie sich deine Abgaben aufteilen.
+          </Text>
+        </Card>
+        <ArrowRightIcon className={"w-[60px]"} />
+        <Card className={"flex! p-6! flex-col w-full h-full gap-4"}>
+          <Heading as={"h2"} size={"6"}>
+            Netto verbessern
+          </Heading>
+          <Image
+            src={"/nettolohn_verbessern.png"}
+            width={400}
+            height={400}
+            alt={""}
+          />
+          <Text>
+            Dir werden Empfehlungen inkl. Auswirkung auf dein Nettolohn
+            angezeigt.
+          </Text>
+        </Card>
       </Flex>
     </Flex>
   );

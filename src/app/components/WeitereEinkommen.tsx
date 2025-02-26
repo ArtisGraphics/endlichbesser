@@ -19,9 +19,9 @@ export const WeitereEinkommen = () => {
   const kindergeldProKind = 255;
 
   useEffect(() => {
-    if (minijobVerdienst * gehaelter > minijobVerdienstGrenzeImJahr) {
+    if (minijobVerdienst * 12 > minijobVerdienstGrenzeImJahr) {
       setMinijobVerdienst(
-        Math.round((minijobVerdienstGrenzeImJahr / gehaelter) * 100) / 100,
+        Math.round((minijobVerdienstGrenzeImJahr / 12) * 100) / 100,
       );
     }
   }, [
@@ -53,14 +53,15 @@ export const WeitereEinkommen = () => {
             name="minijobVerdienst"
             placeholder="dein Minijob-Verdienst"
             value={minijobVerdienst ? minijobVerdienst : ""}
-            max={minijobVerdienstGrenzeImJahr / gehaelter}
+            max={minijobVerdienstGrenzeImJahr / 12}
+            min={0}
             onChange={(e) => setMinijobVerdienst(Number(e.target.value))}
           >
             <TextField.Slot side={"right"}>€</TextField.Slot>
           </TextField.Root>
         </Flex>
         <Text className={"absolute left-full translate-x-6"} color={"green"}>
-          {(minijobVerdienst * gehaelter).toLocaleString("de-DE", {
+          {(minijobVerdienst * 12).toLocaleString("de-DE", {
             style: "currency",
             currency: "EUR",
           })}
