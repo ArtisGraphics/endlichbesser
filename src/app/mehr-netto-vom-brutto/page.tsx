@@ -1,3 +1,4 @@
+"use client";
 import { Callout, Flex, Heading, Tabs } from "@radix-ui/themes";
 import { InfoCircledIcon, LockClosedIcon } from "@radix-ui/react-icons";
 import { BruttoEingabe } from "@/app/components/BruttoEingabe";

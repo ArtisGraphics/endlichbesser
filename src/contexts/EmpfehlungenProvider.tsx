@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { getLocalStorage } from "@/utils/localStorage";
 
 interface EmpfehlungenContextProps {
   anzahlEmpfehlungen: number;
@@ -14,11 +15,6 @@ const EmpfehlungenContext = createContext<EmpfehlungenContextProps | undefined>(
 export const EmpfehlungenProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const getLocalStorage = (key: string, defaultValue: unknown) => {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : defaultValue;
-  };
-
   // States mit lokalen Speicherwerten initialisieren
   const [anzahlEmpfehlungen, setAnzahlEmpfehlungen] = useState<number>(
     getLocalStorage("anzahlEmpfehlungen", 0),

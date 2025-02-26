@@ -7,6 +7,7 @@ import { Abrechnungszeitraum } from "@/types/abrechnungszeitraum";
 import { ArbeitslosenversicherungsArt } from "@/types/arbeitslosenversicherungsArt";
 import { RentenversicherungsArt } from "@/types/rentenversicherungsArt";
 import { KrankenversicherungsArt } from "@/types/krankenversicherungsArt";
+import { getLocalStorage } from "@/utils/localStorage";
 
 interface SalaryContextProps {
   grundfreibetrag: number;
@@ -140,11 +141,6 @@ const SalaryContext = createContext<SalaryContextProps | undefined>(undefined);
 export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const getLocalStorage = (key: string, defaultValue: unknown) => {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : defaultValue;
-  };
-
   // States mit lokalen Speicherwerten initialisieren
   const [grundfreibetrag, setGrundfreibetrag] = useState<number>(
     getLocalStorage("grundfreibetrag", 12096),
