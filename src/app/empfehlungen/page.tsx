@@ -1,5 +1,4 @@
-import { Flex, Heading } from "@radix-ui/themes";
-import { Empfehlungen } from "@/app/components/Empfehlungen";
+import { Flex } from "@radix-ui/themes";
 
 export default function Home() {
   return (
