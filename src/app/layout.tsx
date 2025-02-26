@@ -9,6 +9,7 @@ import { Ads } from "@/app/components/Ads";
 import { Navbar } from "@/app/components/Navbar";
 import { EmpfehlungenProvider } from "@/contexts/EmpfehlungenProvider";
 import { ProfileProvider } from "@/contexts/ProfileProvider";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
+      <Script
+        defer
+        data-domain="endlichbesser.de"
+        src="https://plausible.io/js/script.js"
+      />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-stone-800 h-screen`}
       >
