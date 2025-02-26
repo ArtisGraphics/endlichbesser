@@ -15,7 +15,7 @@ import {
   Tooltip,
 } from "@radix-ui/themes";
 import { Label } from "@radix-ui/react-label";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { berechneZuVersteuerndesEinkommen } from "@/utils/steuern/zuVersteuerndesEinkommen";
 import { useSalary } from "@/contexts/GehaltProvider";
 import {
@@ -38,6 +38,12 @@ import Image from "next/image";
 import { Bundesland } from "@/types/bundesland";
 
 export const BruttoEingabe = () => {
+  const bruttoInputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (bruttoInputRef.current) {
+      bruttoInputRef.current.focus();
+    }
+  }, []);
   const {
     grundfreibetrag,
     brutto,
@@ -459,6 +465,7 @@ export const BruttoEingabe = () => {
         </Flex>
         <Flex gap={"2"} align={"center"}>
           <TextField.Root
+            ref={bruttoInputRef}
             type="number"
             id="brutto"
             name="brutto"
