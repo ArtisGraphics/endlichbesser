@@ -24,6 +24,12 @@ export const Header = () => {
           <Link className={"text-white!"} href={"/"}>
             Start
           </Link>
+          <Link className={"text-white!"} href={"/digital-werden"}>
+            Digital werden
+          </Link>
+          <Link className={"text-white!"} href={"/datei-umwandeln"}>
+            Datei umwandeln
+          </Link>
           <Link href={"/mehr-netto-vom-brutto"}>
             <Button>Netto optimieren</Button>
           </Link>
