@@ -12,7 +12,13 @@ import {
   TextArea,
   TextField,
 } from "@radix-ui/themes";
-import { LockClosedIcon } from "@radix-ui/react-icons";
+import {
+  ArchiveIcon,
+  CopyIcon,
+  DownloadIcon,
+  FilePlusIcon,
+  LockClosedIcon,
+} from "@radix-ui/react-icons";
 
 export default function FileConverter() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -66,6 +72,33 @@ export default function FileConverter() {
     }
   };
 
+  const downloadFile = () => {
+    if (!convertedData) return;
+
+    const blob = new Blob([convertedData], {
+      type: "text/plain;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `converted.${targetFormat}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const copyToClipboard = () => {
+    if (!convertedData) return;
+
+    navigator.clipboard.writeText(convertedData).then(
+      () => {
+        alert("Inhalt in die Zwischenablage kopiert.");
+      },
+      (err) => {
+        alert("Failed to copy text: " + err);
+      },
+    );
+  };
+
   return (
     <Flex
       direction={"column"}
@@ -105,49 +138,68 @@ export default function FileConverter() {
           >
             <TextField.Slot px={"0"} side={"right"}>
               <Button onClick={() => fileInputRef.current?.click()}>
+                <FilePlusIcon />
                 Datei auswählen
               </Button>
             </TextField.Slot>
           </TextField.Root>
         </Flex>
-        <Flex gap={"2"} align={"center"}>
-          <Text>in</Text>
-          <Select.Root value={targetFormat} onValueChange={setTargetFormat}>
-            <Select.Trigger />
-            <Select.Content className={"w-full!"}>
-              <Select.Group>
-                <Select.Label>Dateiformate</Select.Label>
-                <Select.Item
-                  value="csv"
-                  disabled={!file?.name.endsWith(".json")}
-                >
-                  CSV
-                </Select.Item>
-                <Select.Item
-                  value="json"
-                  disabled={!file?.name.endsWith(".csv")}
-                >
-                  JSON
-                </Select.Item>
-                <Select.Item
-                  value="list"
-                  disabled={!file?.name.endsWith(".zip")}
-                >
-                  Liste
-                </Select.Item>
-              </Select.Group>
-            </Select.Content>
-          </Select.Root>
-        </Flex>
-        <Button onClick={convertFile}>Umwandeln</Button>
+        {file && (
+          <>
+            <Flex gap={"2"} align={"center"}>
+              <Text>in</Text>
+              <Select.Root value={targetFormat} onValueChange={setTargetFormat}>
+                <Select.Trigger />
+                <Select.Content className={"w-full!"}>
+                  <Select.Group>
+                    <Select.Label>Dateiformate</Select.Label>
+                    <Select.Item
+                      value="csv"
+                      disabled={!file?.name.endsWith(".json")}
+                    >
+                      CSV
+                    </Select.Item>
+                    <Select.Item
+                      value="json"
+                      disabled={!file?.name.endsWith(".csv")}
+                    >
+                      JSON
+                    </Select.Item>
+                    <Select.Item
+                      value="list"
+                      disabled={!file?.name.endsWith(".zip")}
+                    >
+                      Liste
+                    </Select.Item>
+                  </Select.Group>
+                </Select.Content>
+              </Select.Root>
+              <Button onClick={convertFile}>
+                <ArchiveIcon />
+                Umwandeln
+              </Button>
+            </Flex>
+          </>
+        )}
       </Flex>
       {convertedData && (
-        <TextArea
-          rows={40}
-          cols={500}
-          value={convertedData}
-          readOnly
-        ></TextArea>
+        <>
+          <TextArea
+            rows={40}
+            cols={500}
+            value={convertedData}
+            readOnly
+          ></TextArea>
+          <Flex gap={"4"}>
+            <Button disabled={!convertedData} onClick={downloadFile}>
+              <DownloadIcon /> Download
+            </Button>
+            <Button disabled={!convertedData} onClick={copyToClipboard}>
+              <CopyIcon />
+              Kopieren
+            </Button>
+          </Flex>
+        </>
       )}
     </Flex>
   );
