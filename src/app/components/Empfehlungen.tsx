@@ -1,6 +1,6 @@
 "use client";
 
-import { Flex, SegmentedControl, Text } from "@radix-ui/themes";
+import { Flex, SegmentedControl, Separator, Text } from "@radix-ui/themes";
 import { useSalary } from "@/contexts/GehaltProvider";
 import { useEffect, useState } from "react";
 import EmpfehlungsCard from "@/app/components/EmpfehlungsCard";
@@ -28,10 +28,29 @@ export const Empfehlungen = () => {
     basisKrankenversicherungProzentsatz,
     krankenversicherung,
     alter,
+    kinderfreibetragAngewendet,
+    steuerklasse,
+    sachbezug,
   } = useSalary();
 
   const [mode, setMode] = useState<Abrechnungszeitraum>("Monat");
   const guenstigsteKrankenkasseBeitrag = 1.84;
+  const durchschnittlicheSteuererstattung = 1063;
+
+  const [erholungsbeihilfeMaximum, setErholungsbeihilfeMaximum] =
+    useState<number>(156 + 104 + 52);
+
+  useEffect(() => {
+    let erholungsbeihilfeMaximum = 156;
+    const fuerEhegatten =
+      steuerklasse === "Klasse 3" || steuerklasse === "Klasse 4";
+    if (fuerEhegatten) {
+      erholungsbeihilfeMaximum += 104;
+    }
+    erholungsbeihilfeMaximum += kinder * 52;
+
+    setErholungsbeihilfeMaximum(erholungsbeihilfeMaximum);
+  }, [kinder, steuerklasse]);
 
   const [kvZusatzbeitragErsparnis, setKvZusatzbeitragErsparnis] =
     useState<number>(0);
@@ -162,7 +181,8 @@ export const Empfehlungen = () => {
         pflegeversicherungKeinKinderlosErsparnis +
         kirchensteuer +
         kindergeldProKind * 12 +
-        minijobVerdienstOffen,
+        minijobVerdienstOffen +
+        durchschnittlicheSteuererstattung,
     );
   }, [
     kindergeldProKind,
@@ -175,6 +195,9 @@ export const Empfehlungen = () => {
 
   return (
     <Flex direction={"column"} gap={"4"}>
+      <Text size={"4"} align={"left"}>
+        Empfehlungen die du allein umsetzen kannst:
+      </Text>
       <SegmentedControl.Root
         value={mode}
         onValueChange={(value) => setMode(value as Abrechnungszeitraum)}
@@ -248,13 +271,24 @@ export const Empfehlungen = () => {
             payments={12}
           />
         )}
+        {!kinderfreibetragAngewendet && (
+          <EmpfehlungsCard
+            badgeColor={"teal"}
+            badgeText={"Kindergeld"}
+            description={"Bekomm ein Kind."}
+            savingsPerYear={kindergeldProKind * 12}
+            mode={mode}
+            payments={12}
+          />
+        )}
         <EmpfehlungsCard
-          badgeColor={"teal"}
-          badgeText={"Kindergeld"}
-          description={"Bekomm ein Kind."}
-          savingsPerYear={kindergeldProKind * 12}
+          badgeColor={"tomato"}
+          badgeText={"Steuererklärung"}
+          description={"Mach eine Steuererklärung."}
+          savingsPerYear={durchschnittlicheSteuererstattung}
           mode={mode}
           payments={12}
+          modeSuffix={" im Durchschnitt"}
         />
       </Flex>
       <Flex direction={"column"} gap={"2"} pb={"2"}>
@@ -272,6 +306,98 @@ export const Empfehlungen = () => {
           {" pro "}
           {getZahlungsintervall(mode, gehaelter)}
         </Text>
+      </Flex>
+      <Separator size={"4"} />
+      <Flex direction={"column"} gap={"2"} pb={"2"}>
+        <Text size={"4"} align={"left"}>
+          Empfehlungen die du in Absprache mit deinem Arbeitgeber umsetzen
+          kannst:
+        </Text>
+        <Flex wrap={"wrap"} gap={"4"}>
+          <EmpfehlungsCard
+            badgeText={"Fahrtkostenzuschuss"}
+            badgeColor={"pink"}
+            description={
+              "Unternehmen dürfen Mitarbeitern für 15 Arbeitstage pro Monat 30 Cent pro gefahrenem Kilometer als Zuschuss steuer- und sozialabgabenfrei auf den Nettolohn aufschlagen."
+            }
+            savingsPerYear={12 * 0.3}
+            mode={mode}
+            payments={12}
+            modeSuffix={" / gefahrenem Kilometer"}
+          />
+          {sachbezug < 50 && (
+            <EmpfehlungsCard
+              badgeText={"Sachbezug"}
+              badgeColor={"pink"}
+              description={
+                "Ein Sachbezug wie ein Tankgutschein (oder Einkaufsgutschein für den Supermarkt) in Höhe von 50 Euro monatlich ist erlaubt."
+              }
+              savingsPerYear={12 * (50 - sachbezug)}
+              mode={mode}
+              payments={12}
+            />
+          )}
+          <EmpfehlungsCard
+            badgeText={"Fahrrad / E-Bike"}
+            badgeColor={"pink"}
+            description={
+              "Fahrräder oder E-Bikes (keine S-Pedelecs oder andere Kraftfahrzeuge) können seit 2019 steuerfrei zusätzlich zum Lohn oder Gehalt überlassen werden. Diese Steuerbegünstigung ist bis 2030 gesichert."
+            }
+            mode={mode}
+            payments={12}
+          />
+          <EmpfehlungsCard
+            badgeText={"Sachbezug bei besonderen Anlässen"}
+            badgeColor={"pink"}
+            description={
+              "Kleine Aufmerksamkeiten wie Blumen, Bücher oder Pralinen zu besonderen Anlässen (z. B. Jubiläum) und Arbeitsessen sind bis 60 Euro steuer- und sozialabgabenfrei"
+            }
+            mode={"Jahr"}
+            payments={12}
+            savingsPerYear={60}
+          />
+          <EmpfehlungsCard
+            badgeText={"Gutscheine für eigene Produkte"}
+            badgeColor={"pink"}
+            description={
+              "Für bis zu 1.080 Euro pro Jahr dürfen Arbeitgeber an Mitarbeiter Gutscheine für eigene Produkte verteilen, ohne dass Steuern oder Sozialabgaben anfallen."
+            }
+            mode={mode}
+            payments={gehaelter}
+            savingsPerYear={1080}
+          />
+          {kinder > 0 && (
+            <EmpfehlungsCard
+              badgeText={"Betreuung nicht schulpflichtiger Kinder"}
+              badgeColor={"pink"}
+              description={
+                "Die tatsächlichen Kosten für die Betreuung nicht schulpflichtiger Kinder dürfen Arbeitgeber steuer- und sozialabgabenfrei in voller Höhe übernehmen (Kostennachweise erforderlich)."
+              }
+              mode={mode}
+              payments={12}
+            />
+          )}
+          <EmpfehlungsCard
+            badgeText={"Prävention von Gesundheitsproblemen"}
+            badgeColor={"pink"}
+            description={
+              "Bis zu 600 Euro pro Jahr und Mitarbeiter können für die Prävention von Gesundheitsproblemen für zertifizierte Maßnahmen eingesetzt werden. In diesem Bereich der Nettolohnoptimierung sind häufige Bausteine Rückenschule, Yogakurs oder Massagen."
+            }
+            mode={mode}
+            payments={gehaelter}
+            savingsPerYear={600}
+          />
+          <EmpfehlungsCard
+            badgeText={"Erholungsbeihilfen"}
+            badgeColor={"pink"}
+            description={
+              "Erholungsbeihilfen zur Kräftigung und Erhaltung der allgemeinen Gesundheit dürfen 156 Euro pro Jahr für den Arbeitnehmer, 104 Euro für den Ehegatten und 52 Euro pro Kind nicht überschreiten, um für den Arbeitnehmer steuerfrei zu bleiben. Der Arbeitgeber versteuert die Summe pauschal mit 25 %."
+            }
+            mode={mode}
+            payments={gehaelter}
+            savingsPerYear={erholungsbeihilfeMaximum}
+          />
+        </Flex>
       </Flex>
     </Flex>
   );

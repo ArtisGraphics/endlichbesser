@@ -3,9 +3,10 @@ import { Callout, Flex, Heading, Tabs } from "@radix-ui/themes";
 import { InfoCircledIcon, LockClosedIcon } from "@radix-ui/react-icons";
 import { BruttoEingabe } from "@/app/components/BruttoEingabe";
 import { WeitereEinkommen } from "@/app/components/WeitereEinkommen";
-import { ProfileSwitch } from "@/app/components/ProfileSwitch";
 import { GehaltAnalyse } from "@/app/components/GehaltAnalyse";
 import { Empfehlungen } from "@/app/components/Empfehlungen";
+import { ProfileSwitch } from "@/app/components/ProfileSwitch";
+import { Uebersicht } from "@/app/components/Uebersicht";
 
 export default function Home() {
   return (
@@ -35,12 +36,15 @@ export default function Home() {
         </Callout.Root>
       </Flex>
 
-      <Flex direction={"column"} width={"100%"} gap={"8"} maxWidth={"1200px"}>
+      <ProfileSwitch />
+
+      <Flex direction={"column"} width={"100%"} gap={"2"} maxWidth={"1200px"}>
         <Tabs.Root defaultValue="1">
           <Tabs.List>
-            <Tabs.Trigger value="1">1. Deine Angaben</Tabs.Trigger>
+            <Tabs.Trigger value="1">1. Deine Einnahmen</Tabs.Trigger>
             <Tabs.Trigger value="2">2. Analyse</Tabs.Trigger>
             <Tabs.Trigger value="3">3. Empfehlungen</Tabs.Trigger>
+            <Tabs.Trigger value="4">4. Übersicht</Tabs.Trigger>
           </Tabs.List>
 
           <Flex width={"100%"} pt="3">
@@ -59,7 +63,6 @@ export default function Home() {
                   <BruttoEingabe />
                   <WeitereEinkommen />
                 </Flex>
-                <ProfileSwitch />
               </Flex>
             </Tabs.Content>
 
@@ -69,6 +72,9 @@ export default function Home() {
 
             <Tabs.Content className={"w-full"} value="3">
               <Empfehlungen />
+            </Tabs.Content>
+            <Tabs.Content className={"w-full"} value="4">
+              <Uebersicht />
             </Tabs.Content>
           </Flex>
         </Tabs.Root>

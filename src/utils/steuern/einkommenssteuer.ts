@@ -21,3 +21,10 @@ export function berechneEinkommenssteuer(
   }
   return Math.floor(steuer);
 }
+
+export function berechneKinderfreibetrag(kinderfreibetrag: number): number {
+  const kinderfreibetragProKind = 6672 + 2928;
+  console.log("kinderfreibetrag", kinderfreibetrag);
+  console.log("ergebnis", kinderfreibetrag * kinderfreibetragProKind);
+  return kinderfreibetrag * kinderfreibetragProKind;
+}

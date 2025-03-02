@@ -29,11 +29,17 @@ import {
 } from "@/utils/steuern/kirchensteuer";
 import { berechneArbeitslosenversicherung } from "@/utils/sozialabgaben/arbeitslosenversicherung";
 import { berechneSolidaritaetszuschlag } from "@/utils/steuern/solidaritätszuschlag";
-import { berechneEinkommenssteuer } from "@/utils/steuern/einkommenssteuer";
+import {
+  berechneEinkommenssteuer,
+  berechneKinderfreibetrag,
+} from "@/utils/steuern/einkommenssteuer";
 import { berechneRentenversicherung } from "@/utils/sozialabgaben/rentenversicherung";
 import { berechneKrankenversicherungGesetzlich } from "@/utils/sozialabgaben/krankenversicherung";
 import { getZahlungsintervall } from "@/utils/zahlungsintervall";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import {
+  ExclamationTriangleIcon,
+  InfoCircledIcon,
+} from "@radix-ui/react-icons";
 import Image from "next/image";
 import { Bundesland } from "@/types/bundesland";
 
@@ -70,6 +76,10 @@ export const BruttoEingabe = () => {
     setAlter,
     kinder,
     setKinder,
+    kinderfreibetrag,
+    setKinderfreibetrag,
+    kinderfreibetragAngewendet,
+    setKinderfreibetragAngewendet,
     gehaelter,
     setGehaelter,
     urlaubstage,
@@ -129,12 +139,20 @@ export const BruttoEingabe = () => {
     setArbeitslosenversicherung,
     gesamtKostenSozialversicherung,
     setGesamtKostenSozialversicherung,
+    kindergeld,
   } = useSalary();
 
   const [fetchingBundesland, setFetchingBundesland] = useState<boolean>(false);
 
   const [wochenstundenZeitraum, setWochenstundenZeitraum] =
     useState<string>("Woche");
+
+  const [mehrGeldDurchKinderfreibetrag, setMehrGeldDurchKinderfreibetrag] =
+    useState(0);
+
+  useEffect(() => {
+    setKinderfreibetrag(kinder / 2);
+  }, [kinder, setKinderfreibetrag]);
 
   useEffect(() => {
     if (steuerklasse === "Klasse 2" && kinder === 0) {
@@ -339,16 +357,81 @@ export const BruttoEingabe = () => {
   /* ------- Steuern ------- */
   //Zu versteuerndes Einkommen
   useEffect(() => {
-    const zuVersteuerndesEinkommen = berechneZuVersteuerndesEinkommen(
-      steuerklasse,
-      bruttoImJahr,
-      steuerfreibetragImJahr,
+    const zuVersteuerndesEinkommenOhneKinderfreibetrag =
+      berechneZuVersteuerndesEinkommen(
+        steuerklasse,
+        bruttoImJahr,
+        steuerfreibetragImJahr,
+        grundfreibetrag,
+        0,
+        kinder,
+        entlastungsbetragFuerAlleinerziehendeProKind,
+        entlastungsbetragFuerAlleinerziehende,
+      );
+
+    const zuVersteuerndesEinkommenMitKinderfreibetrag =
+      berechneZuVersteuerndesEinkommen(
+        steuerklasse,
+        bruttoImJahr,
+        steuerfreibetragImJahr,
+        grundfreibetrag,
+        berechneKinderfreibetrag(kinderfreibetrag),
+        kinder,
+        entlastungsbetragFuerAlleinerziehendeProKind,
+        entlastungsbetragFuerAlleinerziehende,
+      );
+
+    //Günstigerprüfung
+    const einkommenssteuerOhneKinderfreibetrag = berechneEinkommenssteuer(
+      zuVersteuerndesEinkommenOhneKinderfreibetrag,
       grundfreibetrag,
-      kinder,
-      entlastungsbetragFuerAlleinerziehendeProKind,
-      entlastungsbetragFuerAlleinerziehende,
     );
-    setZuVersteuerndesEinkommen(zuVersteuerndesEinkommen);
+    const einkommenssteuerMitKinderfreibetrag = berechneEinkommenssteuer(
+      zuVersteuerndesEinkommenMitKinderfreibetrag,
+      grundfreibetrag,
+    );
+
+    const soliOhneKinderfreibetrag = berechneSolidaritaetszuschlag(
+      einkommenssteuerOhneKinderfreibetrag,
+      steuerklasse === "Klasse 2",
+    );
+    const soliMitKinderfreibetrag = berechneSolidaritaetszuschlag(
+      einkommenssteuerMitKinderfreibetrag,
+      steuerklasse === "Klasse 2",
+    );
+
+    const kirchensteuerOhneKinderfreibetrag = berechneKirchensteuer(
+      einkommenssteuerOhneKinderfreibetrag,
+      kirchensteuerProzent,
+    );
+
+    const kirchensteuerMitKinderfreibetrag = berechneKirchensteuer(
+      einkommenssteuerMitKinderfreibetrag,
+      kirchensteuerProzent,
+    );
+
+    const kostenOhneKinderfreibetrag =
+      einkommenssteuerOhneKinderfreibetrag +
+      soliOhneKinderfreibetrag +
+      kirchensteuerOhneKinderfreibetrag -
+      kindergeld * 12;
+    const kostenMitKinderfreibetrag =
+      einkommenssteuerMitKinderfreibetrag +
+      soliMitKinderfreibetrag +
+      kirchensteuerMitKinderfreibetrag;
+
+    const kinderfreibetragNutzen =
+      kostenMitKinderfreibetrag < kostenOhneKinderfreibetrag;
+
+    setKinderfreibetragAngewendet(kinderfreibetragNutzen);
+    setMehrGeldDurchKinderfreibetrag(
+      kostenOhneKinderfreibetrag - kostenMitKinderfreibetrag,
+    );
+    if (kinderfreibetragNutzen) {
+      setZuVersteuerndesEinkommen(zuVersteuerndesEinkommenMitKinderfreibetrag);
+    } else {
+      setZuVersteuerndesEinkommen(zuVersteuerndesEinkommenOhneKinderfreibetrag);
+    }
   }, [
     steuerklasse,
     bruttoImJahr,
@@ -358,6 +441,22 @@ export const BruttoEingabe = () => {
     entlastungsbetragFuerAlleinerziehende,
     kinder,
     entlastungsbetragFuerAlleinerziehendeProKind,
+    kinderfreibetragAngewendet,
+    kinderfreibetrag,
+    kirchensteuerProzent,
+    kindergeld,
+    setKinderfreibetragAngewendet,
+  ]);
+
+  //Günstigerprüfung
+  useEffect(() => {}, [
+    grundfreibetrag,
+    kinderfreibetrag,
+    kindergeld,
+    kirchensteuerProzent,
+    setKinderfreibetragAngewendet,
+    steuerklasse,
+    zuVersteuerndesEinkommen,
   ]);
 
   //Einkommenssteuer
@@ -365,7 +464,7 @@ export const BruttoEingabe = () => {
     setEinkommenssteuer(
       berechneEinkommenssteuer(zuVersteuerndesEinkommen, grundfreibetrag),
     );
-  }, [zuVersteuerndesEinkommen, grundfreibetrag, setEinkommenssteuer]);
+  }, [grundfreibetrag, setEinkommenssteuer, zuVersteuerndesEinkommen]);
 
   useEffect(() => {
     setGesamtKostenSteuern(
@@ -445,6 +544,9 @@ export const BruttoEingabe = () => {
       <Text className={"absolute left-full translate-x-6 text-nowrap"}>
         pro Jahr:
       </Text>
+      <Text className={"absolute left-full translate-x-48 text-nowrap"}>
+        pro Gehalt:
+      </Text>
       <Flex
         wrap={"wrap"}
         position={"relative"}
@@ -492,6 +594,12 @@ export const BruttoEingabe = () => {
         </Flex>
         <Text className={"absolute left-full translate-x-6"} color={"green"}>
           {bruttoImJahr.toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })}
+        </Text>
+        <Text className={"absolute left-full translate-x-48"} color={"green"}>
+          {(bruttoImJahr / gehaelter).toLocaleString("de-DE", {
             style: "currency",
             currency: "EUR",
           })}
@@ -910,6 +1018,131 @@ export const BruttoEingabe = () => {
           <TextField.Slot side={"right"}>Kinder</TextField.Slot>
         </TextField.Root>
       </Flex>
+      {kinder > 0 && (
+        <Flex
+          wrap={"wrap"}
+          gap="2"
+          align="center"
+          justify="between"
+          width={"100%"}
+        >
+          <Flex gap="2" align="center">
+            <Flex
+              gap={"2"}
+              align={"center"}
+              direction={"row"}
+              justify={"center"}
+            >
+              {kinderfreibetrag > kinder && (
+                <Label className={"text-xs text-red-400"}>
+                  <Tooltip
+                    content={
+                      "Du hast mehr Kinderfreibeträge angegeben als Kinder. Bitte korrigiere deine Eingabe."
+                    }
+                  >
+                    <ExclamationTriangleIcon />
+                  </Tooltip>
+                </Label>
+              )}
+              {kinderfreibetragAngewendet && (
+                <Label className={"text-xs text-blue-400"}>
+                  <Tooltip
+                    content={
+                      "Für dein Einkommen lohnt sich der Kinderfreibetrag mehr als das Kindergeld. Der Kinderfreibetrag bringt dir " +
+                      (mehrGeldDurchKinderfreibetrag / 12).toLocaleString(
+                        "de-DE",
+                        { style: "currency", currency: "EUR" },
+                      ) +
+                      "/Monat mehr Geld als das Kindergeld."
+                    }
+                  >
+                    <InfoCircledIcon />
+                  </Tooltip>
+                </Label>
+              )}
+              <Label htmlFor="kinderfreibetrag">Kinderfreibetrag</Label>
+            </Flex>
+            <Popover.Root>
+              <Popover.Trigger>
+                <Button variant="surface">?</Button>
+              </Popover.Trigger>
+              <Popover.Content>
+                <Text size={"1"}>
+                  <b>Wie lange bekomme ich den Freibetrag für Kinder?</b>
+                  <p>
+                    Normalerweise können Sie die Freibeträge bekommen, bis Ihr
+                    Kind 18 Jahre alt wird. Danach können Sie die Freibeträge
+                    nur noch unter zusätzlichen Voraussetzungen bekommen:
+                  </p>
+                  <br />
+                  <p>
+                    Bis Ihr Kind 21 Jahre alt wird, können Sie die Freibeträge
+                    bekommen, wenn
+                  </p>
+
+                  <ul>
+                    <li>
+                      - Ihr Kind nicht in einem Beschäftigungsverhältnis steht
+                      und
+                    </li>
+                    <li>- in Deutschland als Arbeit suchend gemeldet ist.</li>
+                  </ul>
+                  <br />
+                  <p>
+                    Außerdem können Sie in folgenden Fällen die Freibeträge
+                    bekommen, bis Ihr Kind 25 Jahre alt wird:
+                  </p>
+
+                  <ul>
+                    <li>- wenn Ihr Kind eine Ausbildung macht oder studiert</li>
+                    <li>
+                      - wenn Ihr Kind sich in einer Übergangszeit von höchstens
+                      4 Monaten zwischen zwei Ausbildungsabschnitten oder einer
+                      Ausbildung und dem Grundwehr- oder Zivildienst befindet
+                    </li>
+                    <li>
+                      - wenn Ihr Kind seine Berufsausbildung nicht beginnen oder
+                      fortsetzen kann, weil es keinen Ausbildungsplatz findet
+                    </li>
+                    <li>
+                      - wenn Ihr Kind ein Freiwilliges Soziales Jahr, ein
+                      Freiwilliges Ökologisches Jahr, einen
+                      Bundesfreiwilligendienst oder einen Internationalen
+                      Jugendfreiwilligendienst leistet
+                    </li>
+                    <li>
+                      - wenn sich Ihr Kind als Entwicklungshelfer oder
+                      Dienstleistender im Ausland befindet (nach § 14b
+                      Zivildienstgesetz)
+                    </li>
+                  </ul>
+                  <br />
+                  <p>
+                    Wenn Ihr Kind wegen einer Behinderung nicht für sich selbst
+                    sorgen kann, dann steht Ihnen der Freibetrag unabhängig vom
+                    Alter Ihres Kindes zu. Voraussetzung dafür ist, dass die
+                    Behinderung vor Vollendung des 25. Lebensjahres Ihres Kindes
+                    eingetreten ist.
+                  </p>
+                </Text>
+              </Popover.Content>
+            </Popover.Root>
+          </Flex>
+          <Select.Root
+            value={kinderfreibetrag.toString()}
+            onValueChange={(value) => setKinderfreibetrag(parseFloat(value))}
+          >
+            <Select.Trigger />
+            <Select.Content>
+              {Array.from({ length: kinder * 2 + 1 }, (_, i) => (
+                <Select.Item key={i} value={(i / 2).toString()}>
+                  {i / 2 ? i / 2 : "0"}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </Flex>
+      )}
       <Separator size={"4"} />
       <Flex
         wrap={"wrap"}
@@ -927,6 +1160,15 @@ export const BruttoEingabe = () => {
               currency: "EUR",
             })}
           </Text>
+          <Text className={"absolute left-full translate-x-48"} color={"red"}>
+            {(gesamtKostenSozialversicherung / gehaelter).toLocaleString(
+              "de-DE",
+              {
+                style: "currency",
+                currency: "EUR",
+              },
+            )}
+          </Text>
         </Text>
       </Flex>
       <Flex
@@ -938,6 +1180,26 @@ export const BruttoEingabe = () => {
         width={"100%"}
       >
         <Flex gap="2" align="center">
+          {beitragsbemessungsgrenzeKrankenversicherungImJahr <=
+            bruttoImJahr && (
+            <Label className={"text-xs text-green-400"}>
+              <Tooltip
+                content={
+                  "Du hast die Beitragsbemessungsgrenze für die Krankenversicherung erreicht. Du wirst über " +
+                  beitragsbemessungsgrenzeKrankenversicherungImJahr.toLocaleString(
+                    "de-DE",
+                    {
+                      style: "currency",
+                      currency: "EUR",
+                    },
+                  ) +
+                  " Brutto im Jahr nicht mehr belastet."
+                }
+              >
+                <InfoCircledIcon />
+              </Tooltip>
+            </Label>
+          )}
           <Label htmlFor="krankenversicherung">Krankenversicherung</Label>
           <Popover.Root>
             <Popover.Trigger>
@@ -1002,6 +1264,12 @@ export const BruttoEingabe = () => {
         </Select.Root>
         <Text className={"absolute left-full translate-x-6"} color={"red"}>
           {krankenversicherung.toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })}
+        </Text>
+        <Text className={"absolute left-full translate-x-48"} color={"red"}>
+          {(krankenversicherung / gehaelter).toLocaleString("de-DE", {
             style: "currency",
             currency: "EUR",
           })}
@@ -1077,6 +1345,25 @@ export const BruttoEingabe = () => {
         width={"100%"}
       >
         <Flex gap="2" align="center">
+          {beitragsbemessungsgrenzeRentenversicherungImJahr <= bruttoImJahr && (
+            <Label className={"text-xs text-green-400"}>
+              <Tooltip
+                content={
+                  "Du hast die Beitragsbemessungsgrenze für die Rentenversicherung erreicht. Du wirst über " +
+                  beitragsbemessungsgrenzeRentenversicherungImJahr.toLocaleString(
+                    "de-DE",
+                    {
+                      style: "currency",
+                      currency: "EUR",
+                    },
+                  ) +
+                  " Brutto im Jahr nicht mehr belastet."
+                }
+              >
+                <InfoCircledIcon />
+              </Tooltip>
+            </Label>
+          )}
           <Label htmlFor="rentenversicherung">Rentenversicherung</Label>
           <Popover.Root>
             <Popover.Trigger>
@@ -1144,6 +1431,12 @@ export const BruttoEingabe = () => {
             currency: "EUR",
           })}
         </Text>
+        <Text className={"absolute left-full translate-x-48"} color={"red"}>
+          {(rentenversicherung / gehaelter).toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })}
+        </Text>
       </Flex>
 
       <Flex
@@ -1155,6 +1448,26 @@ export const BruttoEingabe = () => {
         width={"100%"}
       >
         <Flex gap="2" align="center">
+          {beitragsbemessungsgrenzeArbeitslosenversicherungImJahr <=
+            bruttoImJahr && (
+            <Label className={"text-xs text-green-400"}>
+              <Tooltip
+                content={
+                  "Du hast die Beitragsbemessungsgrenze für die Arbeitslosenversicherung erreicht. Du wirst über " +
+                  beitragsbemessungsgrenzeArbeitslosenversicherungImJahr.toLocaleString(
+                    "de-DE",
+                    {
+                      style: "currency",
+                      currency: "EUR",
+                    },
+                  ) +
+                  " Brutto im Jahr nicht mehr belastet."
+                }
+              >
+                <InfoCircledIcon />
+              </Tooltip>
+            </Label>
+          )}
           <Label htmlFor="arbeitslosenversicherung">
             Arbeitslosenversicherung
           </Label>
@@ -1226,6 +1539,12 @@ export const BruttoEingabe = () => {
             currency: "EUR",
           })}
         </Text>
+        <Text className={"absolute left-full translate-x-48"} color={"red"}>
+          {(arbeitslosenversicherung / gehaelter).toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })}
+        </Text>
       </Flex>
 
       <Flex
@@ -1237,6 +1556,25 @@ export const BruttoEingabe = () => {
         width={"100%"}
       >
         <Flex gap="2" align="center">
+          {beitragsbemessungsgrenzePflegeversicherungImJahr <= bruttoImJahr && (
+            <Label className={"text-xs text-green-400"}>
+              <Tooltip
+                content={
+                  "Du hast die Beitragsbemessungsgrenze für die Pflegeversicherung erreicht. Du wirst über " +
+                  beitragsbemessungsgrenzePflegeversicherungImJahr.toLocaleString(
+                    "de-DE",
+                    {
+                      style: "currency",
+                      currency: "EUR",
+                    },
+                  ) +
+                  " Brutto im Jahr nicht mehr belastet."
+                }
+              >
+                <InfoCircledIcon />
+              </Tooltip>
+            </Label>
+          )}
           <Label htmlFor="arbeitslosenversicherung">Pflegeversicherung</Label>
           <Popover.Root>
             <Popover.Trigger>
@@ -1295,6 +1633,12 @@ export const BruttoEingabe = () => {
             currency: "EUR",
           })}
         </Text>
+        <Text className={"absolute left-full translate-x-48"} color={"red"}>
+          {(pflegeversicherung / gehaelter).toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })}
+        </Text>
       </Flex>
       <Separator size={"4"} />
       <Flex
@@ -1309,6 +1653,12 @@ export const BruttoEingabe = () => {
           Steuer
           <Text className={"absolute left-full translate-x-6"} color={"red"}>
             {gesamtKostenSteuern.toLocaleString("de-DE", {
+              style: "currency",
+              currency: "EUR",
+            })}
+          </Text>
+          <Text className={"absolute left-full translate-x-48"} color={"red"}>
+            {(gesamtKostenSteuern / gehaelter).toLocaleString("de-DE", {
               style: "currency",
               currency: "EUR",
             })}
@@ -1352,6 +1702,21 @@ export const BruttoEingabe = () => {
                   })}
                 </Text>{" "}
                 Grundfreibetrag
+                {kinderfreibetragAngewendet && (
+                  <>
+                    <br />
+                    <Text color={"green"}>
+                      -
+                      {berechneKinderfreibetrag(
+                        kinderfreibetrag,
+                      ).toLocaleString("de-DE", {
+                        style: "currency",
+                        currency: "EUR",
+                      })}
+                    </Text>{" "}
+                    <span>Kinderfreibetrag</span>
+                  </>
+                )}
                 <br />
                 {steuerfreibetragImJahr > 0 ? (
                   <Text color={"green"}>
@@ -1396,6 +1761,12 @@ export const BruttoEingabe = () => {
             currency: "EUR",
           })}
         </Text>
+        <Text className={"absolute left-full translate-x-48"} color={"red"}>
+          {(einkommenssteuer / gehaelter).toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })}
+        </Text>
       </Flex>
       <Flex
         wrap={"wrap"}
@@ -1431,6 +1802,12 @@ export const BruttoEingabe = () => {
         />
         <Text className={"absolute left-full translate-x-6"} color={"red"}>
           {kirchensteuer.toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })}
+        </Text>
+        <Text className={"absolute left-full translate-x-48"} color={"red"}>
+          {(kirchensteuer / gehaelter).toLocaleString("de-DE", {
             style: "currency",
             currency: "EUR",
           })}
@@ -1502,6 +1879,12 @@ export const BruttoEingabe = () => {
 
           <Text className={"absolute left-full translate-x-6"} color={"red"}>
             {solidaritaetszuschlag.toLocaleString("de-DE", {
+              style: "currency",
+              currency: "EUR",
+            })}
+          </Text>
+          <Text className={"absolute left-full translate-x-48"} color={"red"}>
+            {(solidaritaetszuschlag / gehaelter).toLocaleString("de-DE", {
               style: "currency",
               currency: "EUR",
             })}

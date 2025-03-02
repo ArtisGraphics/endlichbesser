@@ -32,6 +32,10 @@ interface SalaryContextProps {
   setAlter: (value: number) => void;
   kinder: number;
   setKinder: (value: number) => void;
+  kinderfreibetrag: number;
+  setKinderfreibetrag: (value: number) => void;
+  kinderfreibetragAngewendet: boolean;
+  setKinderfreibetragAngewendet: (value: boolean) => void;
   gehaelter: number;
   setGehaelter: (value: number) => void;
   wochenstunden: number;
@@ -134,6 +138,9 @@ interface SalaryContextProps {
 
   kindergeldProKind: number;
   setKindergeldProKind: (value: number) => void;
+
+  sachbezug: number;
+  setSachbezug: (value: number) => void;
 }
 
 const SalaryContext = createContext<SalaryContextProps | undefined>(undefined);
@@ -167,6 +174,11 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<boolean>(getLocalStorage("bundeslandWasManuallySet", false));
   const [alter, setAlter] = useState<number>(getLocalStorage("alter", 25));
   const [kinder, setKinder] = useState<number>(getLocalStorage("kinder", 0));
+  const [kinderfreibetrag, setKinderfreibetrag] = useState<number>(
+    getLocalStorage("kinderfreibetrag", 0),
+  );
+  const [kinderfreibetragAngewendet, setKinderfreibetragAngewendet] =
+    useState<boolean>(getLocalStorage("kinderfreibetragAngewendet", false));
   const [gehaelter, setGehaelter] = useState<number>(
     getLocalStorage("gehaelter", 12),
   );
@@ -332,6 +344,10 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
     getLocalStorage("kindergeldProKind", 255),
   );
 
+  const [sachbezug, setSachbezug] = useState<number>(
+    getLocalStorage("sachbezug", 0),
+  );
+
   // Automatische Speicherung in localStorage
   useEffect(() => {
     const data = {
@@ -348,6 +364,8 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
       bundeslandWasManuallySet,
       alter,
       kinder,
+      kinderfreibetrag,
+      kinderfreibetragAngewendet,
       gehaelter,
       wochenstunden,
       urlaubstage,
@@ -388,6 +406,7 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
       minijobVerdienstGrenzeImJahr,
       kindergeld,
       kindergeldProKind,
+      sachbezug,
     };
     Object.entries(data).forEach(([key, value]) => {
       localStorage.setItem(key, JSON.stringify(value));
@@ -406,6 +425,8 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
     bundeslandWasManuallySet,
     alter,
     kinder,
+    kinderfreibetrag,
+    kinderfreibetragAngewendet,
     gehaelter,
     kirchensteuerProzent,
     solidaritaetszuschlag,
@@ -446,6 +467,7 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
     kindergeldProKind,
     wochenstunden,
     urlaubstage,
+    sachbezug,
   ]);
 
   return (
@@ -479,6 +501,10 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
         setAlter,
         kinder,
         setKinder,
+        kinderfreibetrag,
+        setKinderfreibetrag,
+        kinderfreibetragAngewendet,
+        setKinderfreibetragAngewendet,
         gehaelter,
         setGehaelter,
         wochenstunden,
@@ -559,6 +585,8 @@ export const GehaltProvider: React.FC<{ children: React.ReactNode }> = ({
         setKindergeld,
         kindergeldProKind,
         setKindergeldProKind,
+        sachbezug,
+        setSachbezug,
       }}
     >
       {children}

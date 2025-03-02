@@ -5,6 +5,7 @@ export function berechneZuVersteuerndesEinkommen(
   bruttoImJahr: number,
   steuerfreibetragImJahr: number,
   grundfreibetrag: number,
+  kinderfreibetrag: number,
   kinder: number,
   entlastungsbetragFuerAlleinerziehendeProKind: number,
   entlastungsbetragFuerAlleinerziehende: number,
@@ -14,7 +15,10 @@ export function berechneZuVersteuerndesEinkommen(
     case "Klasse 1":
     case "Klasse 4":
       zuVersteuerndesEinkommen = Math.max(
-        bruttoImJahr - steuerfreibetragImJahr - grundfreibetrag,
+        bruttoImJahr -
+          steuerfreibetragImJahr -
+          kinderfreibetrag -
+          grundfreibetrag,
         0,
       );
       break;
@@ -22,6 +26,7 @@ export function berechneZuVersteuerndesEinkommen(
       zuVersteuerndesEinkommen = Math.max(
         bruttoImJahr -
           steuerfreibetragImJahr -
+          kinderfreibetrag -
           entlastungsbetragFuerAlleinerziehende -
           kinder * entlastungsbetragFuerAlleinerziehendeProKind -
           grundfreibetrag,
@@ -30,14 +35,17 @@ export function berechneZuVersteuerndesEinkommen(
       break;
     case "Klasse 3":
       zuVersteuerndesEinkommen = Math.max(
-        bruttoImJahr - steuerfreibetragImJahr - grundfreibetrag * 2,
+        bruttoImJahr -
+          steuerfreibetragImJahr -
+          kinderfreibetrag -
+          grundfreibetrag * 2,
         0,
       );
       break;
     case "Klasse 5":
     case "Klasse 6":
       zuVersteuerndesEinkommen = Math.max(
-        bruttoImJahr - steuerfreibetragImJahr,
+        bruttoImJahr - steuerfreibetragImJahr - kinderfreibetrag,
         0,
       );
       break;

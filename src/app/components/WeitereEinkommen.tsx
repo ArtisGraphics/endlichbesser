@@ -13,6 +13,9 @@ export const WeitereEinkommen = () => {
     setMinijobVerdienst,
     kindergeld,
     setKindergeld,
+    kinderfreibetragAngewendet,
+    sachbezug,
+    setSachbezug,
   } = useSalary();
 
   const minijobVerdienstGrenzeImJahr = 556 * 12;
@@ -68,7 +71,7 @@ export const WeitereEinkommen = () => {
         </Text>
       </Flex>
 
-      {kinder > 0 && (
+      {kinder > 0 && !kinderfreibetragAngewendet && (
         <Flex
           position={"relative"}
           gap="2"
@@ -98,6 +101,35 @@ export const WeitereEinkommen = () => {
           </Text>
         </Flex>
       )}
+      <Flex
+        position={"relative"}
+        gap="2"
+        align="center"
+        justify="between"
+        width={"100%"}
+      >
+        <Label htmlFor="sachbezug">Sachbezüge</Label>
+        <Flex gap={"2"} align={"center"}>
+          <TextField.Root
+            type="number"
+            id="sachbezug"
+            name="sachbezug"
+            placeholder="deine Sachbezüge"
+            value={sachbezug ? sachbezug : ""}
+            min={0}
+            max={999}
+            onChange={(e) => setSachbezug(Number(e.target.value))}
+          >
+            <TextField.Slot side={"right"}>€</TextField.Slot>
+          </TextField.Root>
+        </Flex>
+        <Text className={"absolute left-full translate-x-6"} color={"green"}>
+          {(sachbezug * 12).toLocaleString("de-DE", {
+            style: "currency",
+            currency: "EUR",
+          })}
+        </Text>
+      </Flex>
     </Flex>
   );
 };

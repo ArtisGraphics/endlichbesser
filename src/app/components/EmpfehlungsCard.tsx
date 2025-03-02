@@ -9,13 +9,15 @@ const EmpfehlungsCard = ({
   savingsPerYear,
   payments,
   mode,
+  modeSuffix,
 }: {
   badgeColor?: string;
   badgeText: string;
   description: string;
-  savingsPerYear: number;
+  savingsPerYear?: number;
   payments: number;
   mode: Abrechnungszeitraum;
+  modeSuffix?: string;
 }) => {
   return (
     <Card className={"flex-1 backdrop-blur-2xl drop-shadow-xs min-w-64"}>
@@ -27,22 +29,27 @@ const EmpfehlungsCard = ({
         align={"start"}
         width="100%"
       >
-        <Badge color={badgeColor as never}>{badgeText}</Badge>
-        <Text size={"2"}>{description}</Text>
-        <Text size={"2"}>
-          <Text color={"green"}>
-            +
-            {(mode === "Monat"
-              ? savingsPerYear / payments
-              : savingsPerYear
-            ).toLocaleString("de-DE", {
-              style: "currency",
-              currency: "EUR",
-            })}
-          </Text>{" "}
-          {" pro "}
-          {getZahlungsintervall(mode, payments)}
-        </Text>
+        <Flex direction={"column"} gap={"2"} align={"start"}>
+          <Badge color={badgeColor as never}>{badgeText}</Badge>
+          <Text size={"2"}>{description}</Text>
+        </Flex>
+        {savingsPerYear && (
+          <Text size={"3"}>
+            <Text color={"green"}>
+              +
+              {(mode === "Monat"
+                ? savingsPerYear / payments
+                : savingsPerYear
+              ).toLocaleString("de-DE", {
+                style: "currency",
+                currency: "EUR",
+              })}
+            </Text>{" "}
+            {" pro "}
+            {getZahlungsintervall(mode, payments)}
+            {modeSuffix ? modeSuffix : ""}
+          </Text>
+        )}
       </Flex>
     </Card>
   );
