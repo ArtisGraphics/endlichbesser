@@ -3,72 +3,92 @@ import Einnahme from "@/app/components/Einnahme";
 import { useSalary } from "@/contexts/GehaltProvider";
 import { useEffect, useState } from "react";
 import { Interval } from "@/types/interval";
+import { Finanzbewegung } from "@/types/finanzbewegung";
+import FinanzbewegungDialog from "@/app/components/FinanzbewegungDialog";
 
 export const Uebersicht = () => {
   const { nettoEinkommen, minijobVerdienst, kindergeld } = useSalary();
 
-  const [gesamtEinnahmen, setGesamtEinnahmen] = useState<number>(0);
-  const [ausgaben, setAusgaben] = useState<
+  const [finanzbewegung, setFinanzbewegung] = useState<
     { title: string; menge: number; interval: Interval }[]
+  >([
+    {
+      title: "Hauptjob",
+      menge: nettoEinkommen / 12,
+      interval: "monatlich",
+    },
+  ]);
+
+  const [positiveFinanzbewegung, setPositiveFinanzbewegung] = useState<
+    Finanzbewegung[]
   >([]);
-  const [gesamtAusgaben, setGesamtAusgaben] = useState<number>(0);
+  const [negativeFinanzbewegung, setNegativeFinanzbewegung] = useState<
+    Finanzbewegung[]
+  >([]);
+  const [totalPositive, setTotalPositive] = useState(0);
+  const [totalNegative, setTotalNegative] = useState(0);
 
   useEffect(() => {
-    setGesamtEinnahmen(nettoEinkommen / 12 + minijobVerdienst + kindergeld);
-  }, [nettoEinkommen, minijobVerdienst, kindergeld]);
+    const positiveFinanzbewegung = finanzbewegung.filter((f) => f.menge > 0);
+    const negativeFinanzbewegung = finanzbewegung.filter((f) => f.menge < 0);
 
-  useEffect(() => {
-    setGesamtAusgaben(
-      ausgaben.reduce((sum, ausgabe) => sum + ausgabe.menge, 0),
+    setPositiveFinanzbewegung(positiveFinanzbewegung);
+    setNegativeFinanzbewegung(negativeFinanzbewegung);
+
+    const totalPositive = positiveFinanzbewegung.reduce(
+      (sum, f) => sum + f.menge,
+      0,
     );
-  }, [ausgaben]);
+    const totalNegative = negativeFinanzbewegung.reduce(
+      (sum, f) => sum + f.menge,
+      0,
+    );
 
-  const addAusgabe = (title: string, menge: number, interval: Interval) => {
-    setAusgaben([...ausgaben, { title, menge, interval }]);
+    setTotalPositive(totalPositive);
+    setTotalNegative(totalNegative);
+  }, [finanzbewegung]);
+
+  const addFinanzbewegung = (
+    title: string,
+    menge: number,
+    interval: Interval,
+  ) => {
+    setFinanzbewegung([...finanzbewegung, { title, menge, interval }]);
   };
-
-  function deleteAusgabe(index: number) {
-    const newAusgaben = [...ausgaben];
-    newAusgaben.splice(index, 1);
-    setAusgaben(newAusgaben);
+  function deleteFinanzbewegung(index: number) {
+    const newFinanzbewegung = [...finanzbewegung];
+    newFinanzbewegung.splice(index, 1);
+    setFinanzbewegung(newFinanzbewegung);
   }
 
   return (
     <Flex direction={"column"} gap={"8"}>
       <Flex direction={"column"} align={"start"} gap={"4"}>
         <Flex align={"center"} gap={"4"} justify={"between"} width={"100%"}>
-          <Heading>Einnahmen</Heading>
+          <Flex gap={"4"} align={"center"}>
+            <Heading>Einnahmen</Heading>
+            <FinanzbewegungDialog onAdd={addFinanzbewegung} />
+          </Flex>
           <Text color={"green"}>
-            {gesamtEinnahmen.toLocaleString("de-DE", {
+            {totalPositive.toLocaleString("de-DE", {
               style: "currency",
               currency: "EUR",
             })}
           </Text>
         </Flex>
-        <Flex gap={"4"} align={"center"}>
-          <Einnahme
-            onDelete={() => console.log("delete")}
-            menge={nettoEinkommen / 12}
-            title={"Hauptjob"}
-            interval={"monatlich"}
-          />
-          {minijobVerdienst > 0 && (
-            <Einnahme
-              onDelete={() => console.log("delete")}
-              menge={minijobVerdienst}
-              title={"Minijob"}
-              interval={"monatlich"}
-            />
-          )}
-          {kindergeld > 0 && (
-            <Einnahme
-              onDelete={() => console.log("delete")}
-              menge={kindergeld}
-              title={"Kindergeld"}
-              interval={"monatlich"}
-            />
-          )}
-        </Flex>
+        {finanzbewegung.length > 0 && (
+          <Flex gap={"4"} align={"center"}>
+            {positiveFinanzbewegung.map((ausgabe, index) => (
+              <Einnahme
+                onDelete={() => deleteFinanzbewegung(index)}
+                key={index}
+                menge={ausgabe.menge}
+                title={ausgabe.title}
+                interval={ausgabe.interval}
+              />
+            ))}
+          </Flex>
+        )}
 
         <Flex align={"center"} gap={"4"} justify={"between"} width={"100%"}>
           <Flex gap={"4"} align={"center"}>
@@ -90,7 +110,7 @@ export const Uebersicht = () => {
                       const title = formData.get("title") as string;
                       const menge = parseFloat(formData.get("menge") as string);
                       const interval = formData.get("interval") as Interval;
-                      addAusgabe(title, menge, interval);
+                      addFinanzbewegung(title, menge, interval);
                     }}
                   >
                     <label>
@@ -120,17 +140,17 @@ export const Uebersicht = () => {
             </Dialog.Root>
           </Flex>
           <Text color={"red"}>
-            {gesamtAusgaben.toLocaleString("de-DE", {
+            {totalNegative.toLocaleString("de-DE", {
               style: "currency",
               currency: "EUR",
             })}
           </Text>
         </Flex>
-        {ausgaben.length > 0 && (
+        {finanzbewegung.length > 0 && (
           <Flex gap={"4"} align={"center"}>
-            {ausgaben.map((ausgabe, index) => (
+            {negativeFinanzbewegung.map((ausgabe, index) => (
               <Einnahme
-                onDelete={() => deleteAusgabe(index)}
+                onDelete={() => deleteFinanzbewegung(index)}
                 key={index}
                 menge={ausgabe.menge}
                 title={ausgabe.title}

@@ -33,12 +33,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
-      <Script
+    <Script
+        src="https://app.rybbit.io/api/script.js"
+        site-id="3"
         defer
-        data-domain="endlichbesser.de"
-        src="https://plausible.io/js/script.js"
-      />
-      <body
+    />
+    <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-stone-800 h-screen`}
       >
         <Theme appearance={"dark"}>
