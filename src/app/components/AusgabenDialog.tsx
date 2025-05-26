@@ -5,11 +5,11 @@ import { Label } from "@radix-ui/react-label";
 import { Interval, intervalColorMap } from "@/types/interval";
 import { FormEvent, useState } from "react";
 
-interface FinanzbewegungDialogProps {
+interface AusgabenDialogProps {
   onAdd: (title: string, menge: number, interval: Interval, startDate?: Date, endDate?: Date, kuendigungsfrist?: number) => void;
 }
 
-const FinanzbewegungDialog = ({ onAdd }: FinanzbewegungDialogProps) => {
+const AusgabenDialog = ({ onAdd }: AusgabenDialogProps) => {
   const [menge, setMenge] = useState("");
   const [title, setTitle] = useState("");
   const [interval, setInterval] = useState<Interval>("monatlich");
@@ -27,7 +27,8 @@ const FinanzbewegungDialog = ({ onAdd }: FinanzbewegungDialogProps) => {
     const parsedEndDate = hasEndDate && endDate ? new Date(endDate) : undefined;
     const parsedKuendigungsfrist = hasEndDate && kuendigungsfrist > 0 ? kuendigungsfrist : undefined;
     
-    onAdd(title, parsedMenge, interval, parsedStartDate, parsedEndDate, parsedKuendigungsfrist);
+    // Make amount negative for expenses
+    onAdd(title, -Math.abs(parsedMenge), interval, parsedStartDate, parsedEndDate, parsedKuendigungsfrist);
     
     // Reset form
     setTitle("");
@@ -43,14 +44,14 @@ const FinanzbewegungDialog = ({ onAdd }: FinanzbewegungDialogProps) => {
   return (
     <Dialog.Root>
       <Dialog.Trigger>
-        <Button color="green" variant="soft">
-          Einnahme hinzufügen
+        <Button color="red" variant="soft">
+          Ausgabe hinzufügen
         </Button>
       </Dialog.Trigger>
       <Dialog.Content className="max-w-md">
-        <Dialog.Title>Einnahme hinzufügen</Dialog.Title>
+        <Dialog.Title>Ausgabe hinzufügen</Dialog.Title>
         <Dialog.Description>
-          Fügen Sie eine neue Einnahme zu Ihrem Budget hinzu.
+          Fügen Sie eine neue Ausgabe zu Ihrem Budget hinzu.
         </Dialog.Description>
         <form className={"flex flex-col gap-4"} onSubmit={handleSubmit}>
             <Label>
@@ -61,7 +62,7 @@ const FinanzbewegungDialog = ({ onAdd }: FinanzbewegungDialogProps) => {
                 name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="z.B. Gehalt, Nebenjob, Kindergeld"
+                placeholder="z.B. Miete, Strom, Versicherung"
                 required
               />
             </Label>
@@ -130,7 +131,7 @@ const FinanzbewegungDialog = ({ onAdd }: FinanzbewegungDialogProps) => {
                   </Label>
                   
                   <div className="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                    💡 <strong>Tipp:</strong> Ohne Startdatum beginnt die Einnahme ab Januar des aktuellen Jahres.
+                    💡 <strong>Tipp:</strong> Ohne Startdatum beginnt die Ausgabe ab Januar des aktuellen Jahres.
                   </div>
                 </div>
               )}
@@ -173,15 +174,15 @@ const FinanzbewegungDialog = ({ onAdd }: FinanzbewegungDialogProps) => {
                   
                   <div className="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
                     💡 <strong>Tipp:</strong> Bei einem Vertragsende im Dezember und einer Kündigungsfrist von 3 Monaten muss die Kündigung spätestens bis Ende September eingehen. 
-                    Die Einnahme läuft aber normal bis zum Enddatum weiter.
+                    Die Ausgabe läuft aber normal bis zum Enddatum weiter.
                   </div>
                 </div>
               )}
             </div>
 
             <Dialog.Close>
-              <Button type="submit" color="green">
-                Einnahme hinzufügen
+              <Button type="submit" color="red">
+                Ausgabe hinzufügen
               </Button>
             </Dialog.Close>
           </form>
@@ -190,4 +191,4 @@ const FinanzbewegungDialog = ({ onAdd }: FinanzbewegungDialogProps) => {
   );
 };
 
-export default FinanzbewegungDialog;
+export default AusgabenDialog; 

@@ -11,7 +11,7 @@ export default function Home() {
       className={"p-4 h-full text-center"}
       gap={"8"}
     >
-      <Heading as={"h1"} className={"text-4xl lg:text-6xl!"}>
+      <Heading as={"h1"} className={"text-4xl lg:text-6xl"}>
         Eine Webseite, die dir hilft
         <br /> dein Leben zu meistern.
       </Heading>
@@ -29,7 +29,7 @@ export default function Home() {
         width={"100%"}
         maxWidth={"1200px"}
       >
-        <Card className={"flex! p-6! flex-col w-full gap-4"}>
+        <Card className={"flex p-6 flex-col w-full gap-4"}>
           <Heading as={"h2"} size={"6"}>
             Netto berechnen
           </Heading>
@@ -46,7 +46,7 @@ export default function Home() {
           </Text>
         </Card>
         <ArrowRightIcon className={"w-[60px]"} />
-        <Card className={"flex! p-6! flex-col w-full h-full gap-4"}>
+        <Card className={"flex p-6 flex-col w-full h-full gap-4"}>
           <Heading as={"h2"} size={"6"}>
             Netto analysieren
           </Heading>
@@ -62,7 +62,7 @@ export default function Home() {
           </Text>
         </Card>
         <ArrowRightIcon className={"w-[60px]"} />
-        <Card className={"flex! p-6! flex-col w-full h-full gap-4"}>
+        <Card className={"flex p-6 flex-col w-full h-full gap-4"}>
           <Heading as={"h2"} size={"6"}>
             Netto verbessern
           </Heading>

@@ -35,7 +35,7 @@ export default function RootLayout({
     <html lang="de">
     <Script
         src="https://app.rybbit.io/api/script.js"
-        site-id="3"
+        data-site-id="3"
         defer
     />
     <body
@@ -50,7 +50,7 @@ export default function RootLayout({
                     <Header />
                   </header>
                   <div className="flex-1 flex flex-col sm:flex-row overflow-x-clip">
-                    <main className="flex-1 ">{children}</main>
+                    <main className="flex-1">{children}</main>
 
                     <nav className="order-first sm:w-32 ">
                       <Navbar />

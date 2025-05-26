@@ -1,12 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { Steuerklasse } from "@/types/steuerklasse";
 import { Abrechnungszeitraum } from "@/types/abrechnungszeitraum";
 import { Bundesland } from "@/types/bundesland";
 import { KrankenversicherungsArt } from "@/types/krankenversicherungsArt";
 import { RentenversicherungsArt } from "@/types/rentenversicherungsArt";
 import { ArbeitslosenversicherungsArt } from "@/types/arbeitslosenversicherungsArt";
+import { Finanzbewegung } from "@/types/finanzbewegung";
 
 interface ProfileSettings {
   grundfreibetrag: number;
@@ -57,6 +58,7 @@ interface ProfileSettings {
   arbeitslosenversicherungsArt: ArbeitslosenversicherungsArt;
   arbeitslosenversicherung: number;
   gesamtKostenSozialversicherung: number;
+  finanzbewegungen: Finanzbewegung[];
 }
 
 interface Profile {
@@ -78,8 +80,57 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [currentProfile, setCurrentProfile] = useState<string | null>(null);
+  // Load profiles from localStorage on initialization
+  const [profiles, setProfiles] = useState<Profile[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("profiles");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          // Handle Date objects in finanzbewegungen
+          return parsed.map((profile: any) => ({
+            ...profile,
+            settings: {
+              ...profile.settings,
+              finanzbewegungen: profile.settings.finanzbewegungen?.map((item: any) => ({
+                ...item,
+                startDate: item.startDate ? new Date(item.startDate) : undefined,
+                endDate: item.endDate ? new Date(item.endDate) : undefined,
+              })) || []
+            }
+          }));
+        }
+      } catch (error) {
+        console.warn("Error loading profiles from localStorage:", error);
+      }
+    }
+    return [];
+  });
+  
+  const [currentProfile, setCurrentProfile] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("currentProfile");
+    }
+    return null;
+  });
+
+  // Save profiles to localStorage whenever they change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("profiles", JSON.stringify(profiles));
+    }
+  }, [profiles]);
+
+  // Save current profile to localStorage whenever it changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (currentProfile) {
+        localStorage.setItem("currentProfile", currentProfile);
+      } else {
+        localStorage.removeItem("currentProfile");
+      }
+    }
+  }, [currentProfile]);
 
   const saveProfile = (name: string, settings: ProfileSettings) => {
     setProfiles((prevProfiles) => {
@@ -99,6 +150,10 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
     setProfiles((prevProfiles) => {
       return prevProfiles.filter((x) => x.name !== name);
     });
+    // If we're deleting the current profile, clear it
+    if (currentProfile === name) {
+      setCurrentProfile(null);
+    }
   };
 
   const loadProfile = (name: string) => {
